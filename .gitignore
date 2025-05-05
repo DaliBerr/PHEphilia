@@ -1,0 +1,5 @@
+1.5/Assembiles/*
+*.dll
+*.sln
+*.pdb
+1.5/Source/obj/*

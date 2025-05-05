@@ -1,0 +1,9 @@
+<ModMetaData>
+  <name>phephilia</name>
+  <author>ME</author>
+  <description>这是一个mod</description>
+  <packageId>com.ME.phephilia</packageId>
+  <supportedVersions>
+    <li>1.5</li>
+  </supportedVersions>
+</ModMetaData>
