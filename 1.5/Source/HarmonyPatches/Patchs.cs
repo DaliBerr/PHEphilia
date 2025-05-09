@@ -67,7 +67,7 @@ namespace Phephilia.HarmonyPatches
         }
         private static float SecondaryLovinChanceFactor(Pawn pawn, Pawn otherPawn, float minRequiredAge)
         {
-            if (pawn.def != otherPawn.def || pawn == otherPawn)
+            if (pawn == otherPawn)
                 return 0f;
 
             if (pawn.story != null && pawn.story.traits != null)
