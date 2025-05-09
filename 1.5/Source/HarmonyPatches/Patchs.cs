@@ -143,30 +143,51 @@ namespace Phephilia.HarmonyPatches
         private static float LovinAgeFactor(Pawn pawn, Pawn otherPawn)
         {
             float num = 1f;
+            float expectancyLiftHuman = ThingDefOf.Human.race.lifeExpectancy;
+            float expectancyLife1 = pawn.RaceProps.lifeExpectancy;
+            float expectancyLife2 = otherPawn.RaceProps.lifeExpectancy;
+
             float age1 = pawn.ageTracker.AgeBiologicalYearsFloat;
             float age2 = otherPawn.ageTracker.AgeBiologicalYearsFloat;
 
+            if(expectancyLife1 > expectancyLiftHuman && age1 > expectancyLiftHuman){
+                age1 /= expectancyLife1;
+                if(age1 < 16f){
+                    age1 = 16f;
+                }
+            }
+            if(expectancyLife2 > expectancyLiftHuman && age2 > expectancyLiftHuman){
+                age2 /= expectancyLife2;
+                if(age2 < 16f){
+                    age2 = 16f;
+                }
+            }
+            float malemin = expectancyLife1 * .375f;
+            float malelower = expectancyLife1 * .125f;
+            float maleupper = expectancyLife1 * .0375f;
+            float malemax = expectancyLife1 * .125f;
+            float femalemin = expectancyLife1 * .125f;
+            float femalelower = expectancyLife1 * .0375f;
+            float femaleupper = expectancyLife1 * .125f;
+            float femalemax = expectancyLife1 * .375f;
+
             if (pawn.gender == Gender.Male)
             {
-                float min = age1 - 30f;
-                float lower = age1 - 10f;
-                float upper = age1 + 3f;
-                float max = age1 + 10f;
+                float min = age1 - malemin;
+                float lower = age1 - malelower;
+                float upper = age1 + maleupper;
+                float max = age1 + malemax;
                 num = GenMath.FlatHill(0.2f, min, lower, upper, max, 0.2f, age2);
             }
             else if (pawn.gender == Gender.Female)
             {
-                float min2 = age1 - 10f;
-                float lower2 = age1 - 3f;
-                float upper2 = age1 + 10f;
-                float max2 = age1 + 30f;
+                float min2 = age1 - femalemin;
+                float lower2 = age1 - femalelower;
+                float upper2 = age1 + femaleupper;
+                float max2 = age1 + femalemax;
                 num = GenMath.FlatHill(0.2f, min2, lower2, upper2, max2, 0.2f, age2);
             }
-            // float minAgeA = GetMinRomanceAgeFromPreceptLabels(pawn);
-            // float minAgeB = GetMinRomanceAgeFromPreceptLabels(otherPawn);
-            // float lerp1 = Mathf.InverseLerp(minAgeA, minAgeA+4f, age1);
-            // float lerp2 = Mathf.InverseLerp(minAgeB,minAgeB+4f, age2);
-            // return num * lerp1 * lerp2;
+            Log.Warning( "pawn "+ pawn.Name + "with "+ otherPawn.Name +" AgeFactor: " + num);
             return num;
         }
         // private static float LovinAgeFactor(Pawn pawn, Pawn otherPawn)
