@@ -14,16 +14,14 @@ using Verse.AI;
 namespace Phephilia.HarmonyPatches
 {
     [HarmonyPatch(typeof(Pawn_RelationsTracker), "SecondaryRomanceChanceFactor")]
-    public static class Prefix_MinAgeForRomance
+    public static class Postfix_RomanceAgeFix
     {
         [HarmonyPostfix]
-        public static void SecondaryRomanceChanceFactor_Prefix(Pawn ___pawn, Pawn otherPawn, ref float __result)
+        public static void SecondaryRomanceChanceFactor_Postfix(Pawn ___pawn, Pawn otherPawn, ref float __result)
         {
-
             Pawn pawn = ___pawn;
-
-            int minAgeA = GetMinRomanceAgeFromPreceptLabels(pawn);
-            int minAgeB = GetMinRomanceAgeFromPreceptLabels(otherPawn);
+            int minAgeA = Core.RomanceAgeOverride.GetMinRomanceAgeFromPreceptLabels(pawn);
+            int minAgeB = Core.RomanceAgeOverride.GetMinRomanceAgeFromPreceptLabels(otherPawn);
             // Log.Warning("minAgeA:  " + pawn.Name + " with " + otherPawn.Name + " has "+ minAgeA + " and minAgeB: " + minAgeB);
             int requiredMinAge = Math.Max(minAgeA, minAgeB);
 
@@ -93,42 +91,6 @@ namespace Phephilia.HarmonyPatches
                 return 0f;
             return LovinAgeFactor(pawn, otherPawn) * PrettinessFactor(otherPawn);
         }
-        public static int defaultMinAge = 14;
-        public static int GetMinRomanceAgeFromPreceptLabels(Pawn pawn)
-        {
-            
-            int AgeFromTrait =  Phephilia.Core.TraitOverride.getTraitRomanceAge(pawn);  
-
-            if(AgeFromTrait != -1){
-                return AgeFromTrait;
-            }
-            if (pawn?.Ideo?.PreceptsListForReading == null){
-                Log.Warning("Cant get PreceptLabels of "+ pawn.Name);
-                return defaultMinAge;
-            }
-
-
-            foreach (var precept in pawn.Ideo.PreceptsListForReading)
-            {
-                // Log.Warning("pawn " + pawn.Name + " has precept " + precept.def.defName);
-                switch (precept.def.defName)
-                {
-                    case "MinAgeforRomance_7":
-                        return 7;
-                    case "MinAgeforRomance_10":
-                        return 10;
-                    case "MinAgeforRomance_14":
-                        return 14;
-                    case "MinAgeforRomance_18":
-                        return 18;
-                    default:
-                        continue;
-                    // 可扩展更多
-                }
-            }
-
-            return defaultMinAge; // 没有找到任何指定的戒律时默认不限制
-        }
         private static float PrettinessFactor(Pawn otherPawn)
         {
             float beauty = 0f;
@@ -139,91 +101,44 @@ namespace Phephilia.HarmonyPatches
             if (beauty > 0f) return 2.3f;
             return 1f;
         }
-
         private static float LovinAgeFactor(Pawn pawn, Pawn otherPawn)
         {
-            float num = 1f;
-            float expectancyLiftHuman = ThingDefOf.Human.race.lifeExpectancy;
-            float expectancyLife1 = pawn.RaceProps.lifeExpectancy;
-            float expectancyLife2 = otherPawn.RaceProps.lifeExpectancy;
+                float num = 1f;
+                
+                // float expectancyLiftHuman = ThingDefOf.Human.race.lifeExpectancy;
+                float expectancyLife1 = pawn.RaceProps.lifeExpectancy;
+                float expectancyLife2 = otherPawn.RaceProps.lifeExpectancy;
+                float age1 = Core.RomanceAgeOverride.getRomanceAgeOverride(pawn);
+                float age2 = Core.RomanceAgeOverride.getRomanceAgeOverride(otherPawn);
 
-            float age1 = pawn.ageTracker.AgeBiologicalYearsFloat;
-            float age2 = otherPawn.ageTracker.AgeBiologicalYearsFloat;
+                float malemin = expectancyLife1 * .375f;
+                float malelower = expectancyLife1 * .25f;
+                float maleupper = expectancyLife1 * .075f;
+                float malemax = expectancyLife1 * .25f;
 
-            if(expectancyLife1 > expectancyLiftHuman && age1 > expectancyLiftHuman){
-                age1 /= expectancyLife1;
-                if(age1 < 16f){
-                    age1 = 16f;
+                float femalemin = expectancyLife2 * .1875f;
+                float femalelower = expectancyLife2 * .1f;
+                float femaleupper = expectancyLife2 * .1875f;
+                float femalemax = expectancyLife2 * .5f;
+
+                if (pawn.gender == Gender.Male)
+                {
+                    float min = age1 - malemin;
+                    float lower = age1 - malelower;
+                    float upper = age1 + maleupper;
+                    float max = age1 + malemax;
+                    num = GenMath.FlatHill(0.2f, min, lower, upper, max, 0.2f, age1);
                 }
-            }
-            if(expectancyLife2 > expectancyLiftHuman && age2 > expectancyLiftHuman){
-                age2 /= expectancyLife2;
-                if(age2 < 16f){
-                    age2 = 16f;
+                else if (pawn.gender == Gender.Female)
+                {
+                    float min2 = age1 - femalemin;
+                    float lower2 = age1 - femalelower;
+                    float upper2 = age1 + femaleupper;
+                    float max2 = age1 + femalemax;
+                    num = GenMath.FlatHill(0.2f, min2, lower2, upper2, max2, 0.2f, age2);
                 }
-            }
-            float malemin = expectancyLife1 * .375f;
-            float malelower = expectancyLife1 * .125f;
-            float maleupper = expectancyLife1 * .0375f;
-            float malemax = expectancyLife1 * .125f;
-            float femalemin = expectancyLife1 * .125f;
-            float femalelower = expectancyLife1 * .0375f;
-            float femaleupper = expectancyLife1 * .125f;
-            float femalemax = expectancyLife1 * .375f;
-
-            if (pawn.gender == Gender.Male)
-            {
-                float min = age1 - malemin;
-                float lower = age1 - malelower;
-                float upper = age1 + maleupper;
-                float max = age1 + malemax;
-                num = GenMath.FlatHill(0.2f, min, lower, upper, max, 0.2f, age2);
-            }
-            else if (pawn.gender == Gender.Female)
-            {
-                float min2 = age1 - femalemin;
-                float lower2 = age1 - femalelower;
-                float upper2 = age1 + femaleupper;
-                float max2 = age1 + femalemax;
-                num = GenMath.FlatHill(0.2f, min2, lower2, upper2, max2, 0.2f, age2);
-            }
-            Log.Warning( "pawn "+ pawn.Name + "with "+ otherPawn.Name +" AgeFactor: " + num);
-            return num;
+                return num;
         }
-        // private static float LovinAgeFactor(Pawn pawn, Pawn otherPawn)
-        // {
-        //     float age1 = pawn.ageTracker.AgeBiologicalYearsFloat;
-        //     float age2 = otherPawn.ageTracker.AgeBiologicalYearsFloat;
-
-        //     // 获取各自的最小恋爱年龄（根据 Precept）
-        //     float minAge1 = Prefix_MinAgeForRomance.GetMinRomanceAgeFromPreceptLabels(pawn);
-        //     float minAge2 = Prefix_MinAgeForRomance.GetMinRomanceAgeFromPreceptLabels(otherPawn);
-
-        //     // 以自身年龄为中心，允许一定范围的年龄差（如 ±10 年）
-        //     float center = age1;
-        //     float toleranceLower = center - 10f;
-        //     float toleranceUpper = center + 10f;
-
-        //     // 但年龄必须大于对方的最小合法年龄
-        //     toleranceLower = Math.Max(toleranceLower, minAge2);
-
-        //     // FlatHill: 顶峰是年龄相近时，偏大或偏小都衰减
-        //     float baseFactor = GenMath.FlatHill(
-        //         min: toleranceLower - 10f,
-        //         lower: toleranceLower,
-        //         upper: toleranceUpper,
-        //         max: toleranceUpper + 10f,
-        //         // zeroOutside: 0.2f,
-        //         x: age2
-        //     );
-
-        //     // 额外拉升：年龄越接近最小合法年龄越弱，越成熟越强
-        //     float maturity1 = Mathf.InverseLerp(minAge1, minAge1 + 4f, age1);
-        //     float maturity2 = Mathf.InverseLerp(minAge2, minAge2 + 4f, age2);
-
-        //     return baseFactor * maturity1 * maturity2;
-        // }
-
     }
 
     [HarmonyPatch(typeof(RelationsUtility), "RomanceEligible")]
@@ -232,8 +147,8 @@ namespace Phephilia.HarmonyPatches
         [HarmonyPostfix]
         public static void Patch_RomanceEligible(ref AcceptanceReport __result, Pawn pawn, bool initiator, bool forOpinionExplanation)
         {
-            // if (!__result.Accepted) return; // 若原逻辑已拒绝则跳过
-            if (pawn.ageTracker.AgeBiologicalYearsFloat < Prefix_MinAgeForRomance.GetMinRomanceAgeFromPreceptLabels(pawn))
+
+            if (pawn.ageTracker.AgeBiologicalYearsFloat < Core.RomanceAgeOverride.GetMinRomanceAgeFromPreceptLabels(pawn))
             {
                 __result = false; // 直接拒绝
                 return;
@@ -332,10 +247,10 @@ namespace Phephilia.HarmonyPatches
                 return;
             }
         
-            int minAgeTarget = Prefix_MinAgeForRomance.GetMinRomanceAgeFromPreceptLabels(target);
+            int minAgeTarget = Core.RomanceAgeOverride.GetMinRomanceAgeFromPreceptLabels(target);
             if (forOpinionExplanation && target.ageTracker.AgeBiologicalYearsFloat < minAgeTarget)
             {
-                Log.Message("CantRomanceTargetYoung");
+                // Log.Message("CantRomanceTargetYoung");
                 // __result = "CantRomanceTargetYoung".Translate();
                 __result = "This is minAgeTarget";
 
@@ -365,161 +280,6 @@ namespace Phephilia.HarmonyPatches
             __result = flag;
         }
     }
-    // [HarmonyPatch(typeof(RelationsUtility), "RomanceEligiblePair")]
-    // public static class Postfix_RomanceEligiblePair
-    // {
-    // [HarmonyPostfix]
-    // public static void Patch_RomanceEligiblePair(ref AcceptanceReport __result, Pawn initiator, Pawn target, bool forOpinionExplanation)
-    // {
-    //     if (initiator == target)
-    //     {
-    //         Log.Message("RomanceEligiblePair");
-    //         __result= false;
-
-    //         return;
-    //     }
-
-    //     DirectPawnRelation directPawnRelation = LovePartnerRelationUtility.ExistingLoveRealtionshipBetween(initiator, target, allowDead: false);
-    //     if (directPawnRelation != null)
-    //     {
-    //         string genderSpecificLabel = directPawnRelation.def.GetGenderSpecificLabel(target);
-    //         // __result= "RomanceChanceExistingRelation".Translate(initiator.Named("PAWN"), genderSpecificLabel.Named("RELATION"));
-    //         Log.Message("RomanceChanceExistingRelation");
-    //         __result = "This is directPawnRelation";
-
-    //         return;
-    //     }
-
-    //     if (!RelationsUtility.RomanceEligible(initiator, initiator: true, forOpinionExplanation))
-    //     {
-    //         Log.Message("RomanceEligibleInitiator");
-    //         __result= false;
-
-    //         return;
-    //     }
-
-    //     int minAgeTarget = Prefix_MinAgeForRomance.GetMinRomanceAgeFromPreceptLabels(target);
-    //     if (forOpinionExplanation && target.ageTracker.AgeBiologicalYearsFloat < minAgeTarget)
-    //     {
-    //                     Log.Message("CantRomanceTargetYoung");
-    //         // __result = "CantRomanceTargetYoung".Translate();
-    //         __result = "This is minAgeTarget";
-
-    //         return;
-    //     }
-    //     if (Phephilia.Core.PrivateStaticMethodCapture.FuncIncestuous(initiator, target))
-    //     {
-    //                     Log.Message("CantRomanceTargetIncest");
-    //         // __result = "CantRomanceTargetIncest".Translate();
-    //         __result = "This is FuncIncestuous";
-
-    //         return;
-    //     }
-
-    //     if (forOpinionExplanation && target.IsPrisoner)
-    //     {
-    //                     Log.Message("CantRomanceTargetPrisoner");
-    //         // __result = "CantRomanceTargetPrisoner".Translate();
-    //         __result = "This is target.IsPrisoner";
-
-    //         return;
-    //     }
-
-    //     if (!RelationsUtility.AttractedToGender(initiator, target.gender) || !RelationsUtility.AttractedToGender(target, initiator.gender))
-    //     {
-    //         if (!forOpinionExplanation)
-    //         {
-    //                             Log.Message("AttractedToGender");
-    //             // __result = AcceptanceReport.WasRejected;
-    //             __result = "this is AttractedToGender";
-
-    //             return;
-    //         }
-    //         Log.Message("CantRomanceTargetSexuality");
-    //         // __result = "CantRomanceTargetSexuality".Translate();
-    //         __result = "This is AttractedToGender";
-
-    //         return;
-    //     }
-
-    //     AcceptanceReport acceptanceReport = RelationsUtility.RomanceEligible(target, initiator: false, forOpinionExplanation);
-    //     if (!acceptanceReport)
-    //     {
-    //                     Log.Message("RomanceEligibleTarget");
-    //         __result = acceptanceReport;
-
-    //         return;
-    //     }
-
-    //     if (target.relations.OpinionOf(initiator) <= 5)
-    //     {
-    //         // __result = "CantRomanceTargetOpinion".Translate();
-    //         Log.Message("CantRomanceTargetOpinion");
-    //         __result = "This is target.relations.OpinionOf";
-    //         return;
-    //     }
-
-    //     if (!forOpinionExplanation && InteractionWorker_RomanceAttempt.SuccessChance(initiator, target, 1f) <= 0f)
-    //     {
-    //         // __result = "CantRomanceTargetZeroChance".Translate();
-    //         Log.Message("CantRomanceTargetZeroChance");
-    //         __result = "This is InteractionWorker_RomanceAttempt";
-    //         return;
-    //     }
-
-    //     if ((!forOpinionExplanation && !initiator.CanReach(target, PathEndMode.Touch, Danger.Deadly)) || target.IsForbidden(initiator))
-    //     {
-    //         // __result = "CantRomanceTargetUnreachable".Translate();
-    //         Log.Message("CantRomanceTargetUnreachable");
-    //         __result = "This is target.IsForbidden";
-    //         return;
-    //     }
-
-    //     if (initiator.relations.IsTryRomanceOnCooldown)
-    //     {
-    //         // __result = "RomanceOnCooldown".Translate();
-    //         Log.Message("RomanceOnCooldown");
-    //         __result = "This is IsTryRomanceOnCooldown";
-    //         return;
-    //     }
-    //     Log.Message("RomanceEligiblePair");
-    //     __result = true;
-
-    //     return;
-    // }
-
-    // }
-
 }
 
-// [HarmonyPatch(typeof(RelationsUtility), "RomanceEligible")]
-// public static class Postfix_RomanceEligible
-// {
-//     [HarmonyPostfix]
-//     public static void Postfix(ref AcceptanceReport __result, Pawn pawn)
-//     {
-//         if (!__result.Accepted) return;
 
-//         int minAge = Prefix_MinAgeForRomance.GetMinRomanceAgeFromPreceptLabels(pawn);
-//         if (pawn.ageTracker.AgeBiologicalYearsFloat < minAge)
-//         {
-//             __result = false;
-//         }
-//     }
-// }
-
-// [HarmonyPatch(typeof(RelationsUtility), "RomanceEligiblePair")]
-// public static class Postfix_RomanceEligiblePair
-// {
-//     [HarmonyPostfix]
-//     public static void Postfix(ref AcceptanceReport __result, Pawn initiator, Pawn target, bool forOpinionExplanation)
-//     {
-//         if (!__result.Accepted || !forOpinionExplanation) return;
-
-//         int minAge = Prefix_MinAgeForRomance.GetMinRomanceAgeFromPreceptLabels(target);
-//         if (target.ageTracker.AgeBiologicalYearsFloat < minAge)
-//         {
-//             __result = "CantRomanceTargetYoung".Translate();
-//         }
-//     }
-// }
