@@ -1,0 +1,56 @@
+
+<Defs>
+    <TraitDef>
+      <defName>RomanceFetish_10</defName> 
+      <!-- <label>Taboo Breaker</label> -->
+      <commonality>0.1</commonality>
+
+      <degreeDatas>
+        <li>
+          <label>Taboo Breaker</label>
+          <description>{PAWN_nameDef} prefer younger ones.</description>
+          <degree>0</degree>
+        </li>
+      </degreeDatas>
+      <conflictingTraits>
+        <li>RomanceFetish_IgnoreAll</li>
+        <li>RomanceFetish_7</li>
+      </conflictingTraits>
+    </TraitDef>
+
+    <TraitDef>
+      <defName>RomanceFetish_7</defName>
+      <!-- <label>Lolita Complex</label> -->
+      <commonality>0.05</commonality>
+
+      <degreeDatas>
+        <li>
+          <label>Lolita Complex</label>
+          <description>{PAWN_nameDef} prefer an amoral romance.</description>
+          <degree>0</degree>
+        </li>
+      </degreeDatas>
+      <conflictingTraits>
+        <li>RomanceFetish_IgnoreAll</li>
+        <li>RomanceFetish_10</li>
+      </conflictingTraits>
+    </TraitDef>
+
+    <TraitDef>
+      <defName>RomanceFetish_IgnoreAll</defName> 
+      <!-- <label>Unbound Lover</label> -->
+      <commonality>1</commonality> 
+
+      <degreeDatas>
+        <li>
+          <label>Unbound Lover</label>
+          <description>{PAWN_nameDef} completely ignores social and religious norms on romance age.</description>
+          <degree>0</degree>
+        </li>
+      </degreeDatas>
+      <conflictingTraits>
+        <li>RomanceFetish_7</li>
+        <li>RomanceFetish_10</li>
+      </conflictingTraits>
+    </TraitDef>  
+</Defs>

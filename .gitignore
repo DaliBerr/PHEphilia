@@ -3,5 +3,7 @@
 *.sln
 *.pdb
 1.5/Source/obj/*
+1.6/Source/obj/*
+1.6/Assembiles/*
 !Phephilia.dll
 

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <IssueDef>
+    <defName>Phephilia_MinRomanceAge</defName>
+    <label>Romance Age Doctrine</label>
+    <iconPath>UI/Issues/issue</iconPath>
+  </IssueDef>
+
+  <!-- 7岁选项 -->
+  <PreceptDef>
+    <defName>MinAgeforRomance_7</defName>
+    <issue>Phephilia_MinRomanceAge</issue>
+    <label>Pedophilia</label>
+    <description>This belief system allows people to accepte the relationship above 7.</description>
+    <impact>Low</impact>
+    <enabledForNPCFactions>true</enabledForNPCFactions>
+		<displayOrderInIssue>35</displayOrderInIssue>
+		<displayOrderInImpact>-100</displayOrderInImpact>
+    <classic>true</classic>
+    		<defaultSelectionWeight>0.2</defaultSelectionWeight>
+  </PreceptDef>
+
+  <!-- 10岁选项 -->
+  <PreceptDef>
+    <defName>MinAgeforRomance_10</defName>
+    <label>Hebephilia</label>
+    <description>Romantic relationships are only acceptable above 10.</description>
+    <impact>Low</impact>
+    <enabledForNPCFactions>true</enabledForNPCFactions>
+    <issue>Phephilia_MinRomanceAge</issue>
+    <displayOrderInIssue>30</displayOrderInIssue>
+    <displayOrderInImpact>-100</displayOrderInImpact>
+    <classic>true</classic>
+    		<defaultSelectionWeight>0.3</defaultSelectionWeight>
+  </PreceptDef>
+
+  <!-- 14岁选项 -->
+  <PreceptDef>
+    <defName>MinAgeforRomance_14</defName>
+    <label>Ephebophilia</label>
+    <description>Romantic relationships are only acceptable above 14.</description>
+    <impact>Low</impact>
+    <issue>Phephilia_MinRomanceAge</issue>
+    <enabledForNPCFactions>true</enabledForNPCFactions>
+    <displayOrderInIssue>20</displayOrderInIssue>
+		<displayOrderInImpact>-100</displayOrderInImpact>
+    <classic>true</classic>
+    		<defaultSelectionWeight>1</defaultSelectionWeight>
+  </PreceptDef>
+
+  <!-- 18岁选项 -->
+  <PreceptDef>
+    <defName>MinAgeforRomance_18</defName>
+    <label>Teleiophilia</label>
+    <description>Romantic relationships are only acceptable above 18.</description>
+    <impact>Low</impact>
+    <issue>Phephilia_MinRomanceAge</issue>
+    <enabledForNPCFactions>true</enabledForNPCFactions>
+    <displayOrderInIssue>10</displayOrderInIssue>
+		<displayOrderInImpact>-100</displayOrderInImpact>
+    <classic>true</classic>
+    		<defaultSelectionWeight>1</defaultSelectionWeight>
+  </PreceptDef>
+
+</Defs>

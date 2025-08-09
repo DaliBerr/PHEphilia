@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <ModVersion>1.5</ModVersion>
+    <ModVersion>1.6</ModVersion>
   </PropertyGroup>
 
   <Target Name = "AfterBuildCopy" AfterTargets="Build">
